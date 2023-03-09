@@ -82,6 +82,7 @@ def infer_compression_from_filename(filename: str) -> str:
 def dump(
     obj: Any,
     path: str,
+    compression: Optional[str] = None,
     compression_kwargs: Optional[Dict] = None,
     json_kwargs: Optional[Dict] = None,
     encoding: str = "utf-8",
@@ -94,6 +95,8 @@ def dump(
         The object that will be saved to disk
     path: str
         The path to the file to which to dump ``obj``
+    compression: Optional[str] = None
+        Use this to force a format (json, gz, bz, lzma) instead of inferring from extension.
     compression_kwargs: Optional[Dict] = None
         Keywords argument to pass to the compressed file opening protocol.
     json_kwargs: Optional[Dict] = None
@@ -119,14 +122,14 @@ def dump(
     
     compression_kwargs = {} if compression_kwargs is None else compression_kwargs
     json_kwargs = {} if json_kwargs is None else json_kwargs
-    compression = infer_compression_from_filename(path)
+    compression = infer_compression_from_filename(path) if compression is None else compression
     mode = get_compression_write_mode(compression)
 
     directory = os.path.dirname(path)
     if directory:
         os.makedirs(directory, exist_ok=True)
 
-    if compression is None or compression == "json":
+    if compression == "json":
         fout = open(path, mode=mode, encoding=encoding, **compression_kwargs)
     elif compression == "gzip":
         import gzip
@@ -149,6 +152,7 @@ def dump(
 
 def load(
     path: str,
+    compression: Optional[str] = None,
     compression_kwargs: Optional[Dict] = None,
     json_kwargs: Optional[Dict] = None,
     encoding: str = "utf-8",
@@ -160,6 +164,8 @@ def load(
     ----------
     path: str
         The path to the file from which to load the ``obj``
+    compression: Optional[str] = None
+        Use this to force a format (json, gz, bz, lzma) instead of inferring from extension.
     compression_kwargs: Optional[Dict] = None
         Keywords argument to pass to the compressed file opening protocol.
     json_kwargs: Optional[Dict] = None
@@ -182,10 +188,10 @@ def load(
 
     compression_kwargs = {} if compression_kwargs is None else compression_kwargs
     json_kwargs = {} if json_kwargs is None else json_kwargs
-    compression = infer_compression_from_filename(path)
+    compression = infer_compression_from_filename(path) if compression is None else compression
     mode = get_compression_read_mode(compression)
 
-    if compression is None or compression == "json":
+    if compression == "json":
         file = open(path, mode=mode, encoding=encoding, **compression_kwargs)
     elif compression == "gzip":
         import gzip
@@ -232,6 +238,7 @@ def local_path(relative_path: str) -> str:
 
 def local_load(
     path: str,
+    compression: Optional[str] = None,
     compression_kwargs: Optional[Dict] = None,
     json_kwargs: Optional[Dict] = None,
     encoding: str = "utf-8",
@@ -243,6 +250,8 @@ def local_load(
     ----------
     path: str
         The path to the local file from which to load the ``obj``
+    compression: Optional[str] = None
+        Use this to force a format (json, gz, bz, lzma) instead of inferring from extension.
     compression_kwargs: Optional[Dict] = None
         keywords argument to pass to the compressed file opening protocol.
     json_kwargs: Optional[Dict] = None
@@ -258,7 +267,8 @@ def local_load(
         If given path is not a valid string.
     """
     return load(
-        pah=local_path(path),
+        path=local_path(path),
+        compression=compression,
         compression_kwargs=compression_kwargs,
         json_kwargs=json_kwargs,
         encoding=encoding,
@@ -269,6 +279,7 @@ def local_load(
 def local_dump(
     obj: Any,
     path: str,
+    compression: Optional[str] = None,
     compression_kwargs: Optional[Dict] = None,
     json_kwargs: Optional[Dict] = None,
     encoding: str = "utf-8",
@@ -281,6 +292,8 @@ def local_dump(
         The object that will be saved to disk
     path: str
         The local path to the file to which to dump ``obj``
+    compression: Optional[str] = None
+        Use this to force a format (json, gz, bz, lzma) instead of inferring from extension.
     compression_kwargs: Optional[Dict] = None
         keywords argument to pass to the compressed file opening protocol.
     json_kwargs: Optional[Dict] = None
@@ -297,6 +310,7 @@ def local_dump(
     dump(
         obj,
         path=local_path(path),
+        compression=compression,
         compression_kwargs=compression_kwargs,
         json_kwargs=json_kwargs,
         encoding=encoding
